@@ -1,0 +1,156 @@
+# Git e GitHub - comandos essenciais em sequência (uso diário)
+
+1) Configuração inicial (uma vez por máquina)
+    git config --global user.name "Seu Nome"
+    git config --global user.email "seu@email.com"
+    git config --global core.editor "code --wait"    # ajustar editor
+    git config --global pull.rebase false            # preferência pull
+    # gerar chave SSH (se usar SSH com GitHub)
+    ssh-keygen -t ed25519 -C "seu@email.com"
+    # depois copie ~/.ssh/id_ed25519.pub para GitHub > Settings > SSH and GPG keys
+
+2) Criar ou clonar repositório
+    git init                                      # iniciar repositório local
+    git clone git@github.com:usuario/repositorio.git
+    git clone https://github.com/usuario/repositorio.git
+
+3) Trabalhar em ramificações (branches)
+    git branch                                   # listar branches locais
+    git checkout -b nome-da-branch               # criar e mudar para branch
+    git switch -c nome-da-branch                 # alternativa moderna
+
+4) Ver estado e alterações
+    git status                                   # ver arquivos modificados
+    git diff                                     # ver diferenças não staged
+    git diff --staged                            # ver diferenças staged
+
+5) Preparar e criar commits
+    git add arquivo.txt                          # stage um arquivo
+    git add .                                    # stage tudo
+    git restore --staged arquivo.txt             # remover do stage
+    git commit -m "Mensagem curta e significativa"
+    git commit --amend -m "Mensagem corrigida"  # ajustar último commit
+
+6) Histórico e inspeção
+    git log --oneline --graph --decorate         # histórico resumido visual
+    git show HEAD                                # ver último commit
+    git blame arquivo.txt                        # quem alterou cada linha
+
+7) Atualizar do remoto
+    git remote -v                                # ver remotos configurados
+    git fetch origin                             # buscar atualizações sem mesclar
+    git pull origin main                         # buscar e mesclar (default)
+    git pull --rebase origin main                # preferência: rebase ao puxar
+
+8) Enviar para remoto
+    git push origin nome-da-branch               # enviar branch
+    git push -u origin nome-da-branch            # definir upstream na primeira vez
+    git push --tags                              # enviar tags
+
+9) Rebase, merge e resolução de conflitos
+    git merge main                               # mesclar main na branch atual
+    git rebase main                              # reaplicar commits sobre main
+    # ao haver conflito:
+    git status                                   # ver arquivos em conflito
+    # editar arquivos para resolver, então:
+    git add arquivo-resolvido
+    git rebase --continue   (se estiver em rebase)
+    git commit              (se estiver em merge)
+
+10) Stash (guardar trabalho temporariamente)
+    git stash save "mensagem"
+    git stash list
+    git stash apply stash@{0}
+    git stash pop
+    git stash drop stash@{0}
+
+11) Reverter e resetar (cuidado)
+    git revert <commit>                          # cria commit que desfaz outro
+    git reset --soft <commit>                    # move HEAD, mantém index
+    git reset --mixed <commit>                   # move HEAD, limpa index
+    git reset --hard <commit>                    # apaga alterações locais (perigoso)
+
+12) Tags e releases
+    git tag -a v1.0 -m "versão 1.0"
+    git push origin --tags
+
+13) Cherry-pick e bisect
+    git cherry-pick <commit>                     # aplicar commit específico
+    git bisect start; git bisect bad <rev>; git bisect good <rev>
+    # usar para localizar commits que introduziram bugs
+
+14) Ferramentas úteis
+    git mergetool                                 # usar ferramenta de merge externa
+    git clean -fd                                 # remove arquivos não rastreados (cuidado)
+    git shortlog -sne                              # contribuições por autor
+
+15) Fluxo típico para PR no GitHub (exemplo)
+    # local
+    git checkout -b feature/x
+    editar arquivos, git add ., git commit -m "feat: descrição"
+    git push -u origin feature/x
+    # no GitHub: abrir Pull Request (ou usar CLI "gh")
+    gh pr create --base main --head usuario:feature/x --title "Título" --body "Descrição"
+    gh pr checkout 123                             # baixar PR localmente
+    gh pr merge 123 --squash                       # mesclar via CLI
+
+16) Arquivos de configuração úteis
+    .gitignore                                    # arquivos a ignorar (IDE, binários)
+    .gitattributes                                # tratamento de fim de linha, linguagens, diff
+
+Dicas rápidas:
+- Mensagens de commit claras: tipo(escopo): descrição curta
+- Fazer commits pequenos e atômicos
+- Atualize branch local com main frequentemente (rebase ou merge)
+- Use branches para features, correções (fix), hotfixes e releases
+- Revise PRs e deixe o histórico limpo (rebase/squash quando apropriado)
+
+Obs: adapte "main" para "master" se seu repositório usar esse nome de branch padrão.
+
+# no GitHub: abrir Pull Request (ou usar CLI "gh")
+    gh pr create --base main --head usuario:feature/x --title "Título" --body "Descrição"
+    gh pr checkout 123                             # baixar PR localmente
+    gh pr merge 123 --squash                       # mesclar via CLI
+
+16) Arquivos de configuração úteis
+    .gitignore                                    # arquivos a ignorar (IDE, binários)
+    .gitattributes                                # tratamento de fim de linha, linguagens, diff
+
+Dicas rápidas:
+- Mensagens de commit claras: tipo(escopo): descrição curta
+- Fazer commits pequenos e atômicos
+- Atualize branch local com main frequentemente (rebase ou merge)
+- Use branches para features, correções (fix), hotfixes e releases
+- Revise PRs e deixe o histórico limpo (rebase/squash quando apropriado)
+
+Obs: adapte "main" para "master" se seu repositório usar esse nome de branch padrão.
+
+...existing code...
+
+Explicação dos termos (resumo curto)
+
+- rebase
+    - O que é: "Reaplica" seus commits sobre um novo ponto base (ex.: main) para linearizar o histórico.
+    - Uso comum: sincronizar sua branch de feature com a branch principal antes do merge.
+    - Comandos: `git checkout feature/x` -> `git fetch origin` -> `git rebase origin/main`
+    - Gotchas: rebase reescreve histórico — não faça em branches compartilhadas sem coordenação; após rebase será necessário `git push --force-with-lease`.
+
+- feature
+    - O que é: branch criada para desenvolver uma nova funcionalidade isoladamente.
+    - Convenção: nomes como `feature/login`, `feature/checkout`.
+    - Boas práticas: commits pequenos/atômicos, PRs claros, mantenha a feature atualizada com main (rebase ou merge) frequentemente.
+
+- merge
+    - O que é: combina o histórico de duas branches numa única, preservando commits e possivelmente criando um commit de merge.
+    - Tipos: fast-forward (sem commit de merge), merge commit (preserva pontos de junção), `--squash` (aplica mudanças como um único commit).
+    - Comandos: `git checkout main` -> `git merge feature/x`
+    - Quando usar: preferível para integrar branches públicas quando se quer preservar contexto; use rebase quando se prefere histórico linear.
+
+Exemplo rápido de fluxo:
+- Criar feature: `git checkout -b feature/login`
+- Desenvolver e commitar
+- Atualizar com main (rebase): `git fetch origin && git rebase origin/main`
+- Resolver conflitos, testar
+- Abrir PR e, após revisão, merge via GitHub ou `git merge --no-ff feature/login`
+
+Sugestão de melhoria no arquivo: adicionar estas definições logo abaixo das dicas rápidas para facilitar consulta.
